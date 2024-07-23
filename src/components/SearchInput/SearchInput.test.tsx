@@ -1,54 +1,75 @@
-import React from 'react'
-import {render, waitFor, fireEvent, screen} from '@testing-library/react'
-import axiosMock from 'axios'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
+import axios from 'axios'
 import SearchInput from './'
+import { SourceAPI } from '../../utils/models';
+import { MemoryRouter } from 'react-router-dom';
+
+const axiosMock = axios as jest.Mocked<typeof axios>;
 
 const book = {
   id: 'SqikDwAAQBAJ',
-  volumeInfo: {
-    title: 'JavaScript - Aprende a programar en el lenguaje de la web',
-    authors: ["Fernando Luna"],
-    publishedDate: "2019-07-23",
-    imageLinks: {
-      "smallThumbnail": "http://books.google.com/books/content?id=SqikDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api",
-      "thumbnail": "http://books.google.com/books/content?id=SqikDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
-    },
-  }
+  title: 'JavaScript - Aprende a programar en el lenguaje de la web',
+  portada: 'http://books.google.com/books/content?id=SqikDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api'
 }
 
-test('SearchInput: Should get books when SearchInput is mounted' ,async () => {
-  const setResponse = jest.fn()
-  const books = {items: [book]}
-  const response = {data: books}
+const bookOpenLibrary = {
+  key: 'SqikDwAAQBAJ',
+  title: 'JavaScript - Aprende a programar en el lenguaje de la web',
+  cover_i: 'http://books.google.com/books/content?id=SqikDwAAQBAJ&printsec=frontcover&img=1&zoom=5&edge=curl&source=gbs_api'
+}
+
+test('SearchInput: Should get books when SearchInput is mounted', async () => {
+  const setBooks = jest.fn()
+  const books = [ book ]
+  const response = {
+    data: {
+      items: books
+    }
+  }
+
   axiosMock.get.mockResolvedValue(response)
 
-  render(<SearchInput setResponse={setResponse} />)
-  await waitFor(() => {
-    expect(setResponse).toBeCalledWith(response)
-  })
+ await act(async () => {
+    render(
+      <MemoryRouter>
+        <SearchInput 
+          url='' 
+          sourceAPI={SourceAPI.GOOGLE}
+          withActions={false}
+          setBooks={setBooks} />
+      </MemoryRouter>
+    );
+  });
 
+  await waitFor(() => {
+    expect(setBooks).toHaveBeenCalledWith(expect.any(Function));
+  })
 })
 
 
 test('SearchInput: Should get books when click on Buscar', async () => {
-  const setResponse = jest.fn()
-  const books = {items: [book]}
-  const response = {data: books}
+  const setBooks = jest.fn()
+  const books = [ bookOpenLibrary ]
+  const response = {
+    data: {
+      docs: books
+    }
+  }
   axiosMock.get.mockResolvedValue(response)
 
-  render(<SearchInput setResponse={setResponse} />)
+  render(<SearchInput url='' withActions sourceAPI={SourceAPI.OPEN} setBooks={setBooks} />)
+
   await waitFor(() => {
-    expect(setResponse).toBeCalledWith(response)
+    expect(setBooks).toHaveBeenCalledWith(expect.any(Function));
   })
 
   fireEvent.change(screen.getByPlaceholderText(/Buscar/i),
-    { target: { value: 'javascript' } }
+    { target: { value: 'react' } }
   )
 
   fireEvent.click(screen.getByText('Buscar'))
 
   await waitFor(() => {
-    expect(setResponse).toBeCalledTimes(2)
+    expect(setBooks).toHaveBeenCalledTimes(2)
   })
-
 })

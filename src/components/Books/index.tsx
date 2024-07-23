@@ -1,15 +1,24 @@
-import React from 'react'
 import Book , { BookType }from '../Book'
 import './books.css'
 
-export interface BooksProps {
-  books: BookType[]
+interface BooksProps {
+  books: BookType[];
+  onClick?: (id: string) => void
 }
 
-const Books = ({ books }: BooksProps) => {
+const Books = ({ books, onClick }: BooksProps) => {
   return (
     <div className="books">
-      {books.map(book => <Book key={book.id} book={book} />)} 
+      {
+        books.map(book => 
+          <Book 
+            key={book.id}
+            id={book.id}
+            portada={book.portada}
+            onClick={onClick}
+            title={book.title}  />
+        )
+      }
     </div>
   )
 }

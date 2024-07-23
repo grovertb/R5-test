@@ -1,11 +1,13 @@
-import React from 'react'
 import {render, screen} from '@testing-library/react'
-import axiosMock from 'axios'
+import axios from 'axios'
 import App from './App'
+import { MemoryRouter } from 'react-router-dom';
+
+const axiosMock = axios as jest.Mocked<typeof axios>;
 
 const book = {
   id: 'SqikDwAAQBAJ',
-  volumeInfo: {
+  volumeInfo: { 
     title: 'JavaScript - Aprende a programar en el lenguaje de la web',
     authors: ["Fernando Luna"],
     publishedDate: "2019-07-23",
@@ -19,7 +21,11 @@ test('App: Should show books', async () => {
   const books = {items: [book]}
   const response = { data: books }
   axiosMock.get.mockResolvedValue(response)
-  render(<App />)
+  render(
+    <MemoryRouter>
+      <App />
+    </MemoryRouter>
+  )
 
   const bookTitle = await screen.findByText(/javascript/i)
   const pageTitle = screen.getByText(/google books/i)
